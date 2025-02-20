@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "821922025728",
+    "project_id": "youtube-daisyg-clon",
+    "storage_bucket": "youtube-daisyg-clon.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:821922025728:android:0aa721acf71d5f25fa63e5",
+        "android_client_info": {
+          "package_name": "com.example.youtube_clone"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWYKvOuLQE1u-q6QM_H2sycUeKxDicl1c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
