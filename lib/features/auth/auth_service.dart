@@ -21,9 +21,20 @@ class AuthService {
       final GoogleSignInAuthentication googleSignInAuth = await userSignIn!.authentication;
       final AuthCredential authCredential = GoogleAuthProvider.credential(
         accessToken: googleSignInAuth.accessToken,
-        idToken: googleSignInAuth.idToken,
+        // idToken: googleSignInAuth.idToken,
       );
       final UserCredential userCredential = await firebaseAuth.signInWithCredential(authCredential);
+
+      User? user = firebaseAuth.currentUser;
+      if (user != null) {
+        print("🔥 Usuario autenticado en Firebase");
+        print("Firebase UID: ${user.uid}");
+        print("Correo en Firebase: ${user.email}");
+        print("Nombre en Firebase: ${user.displayName}");
+        print("Foto: ${user.photoURL}");
+        print("Correo en providerData: ${user?.providerData.map((e) => e.email).toList()}");
+        print((user as User));
+      }
       // return userCredential.user;
     } catch (e) {
       print(e);

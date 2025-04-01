@@ -8,6 +8,7 @@ import 'package:youtube_clone/features/auth/pages/login_page.dart';
 import 'package:youtube_clone/features/auth/pages/username_page.dart';
 import 'package:youtube_clone/features/channel/my_channel/pages/channel_settings.dart';
 import 'package:youtube_clone/features/channel/my_channel/pages/my_channel_screen.dart';
+import 'package:youtube_clone/features/upload/long_video/video_details_page.dart';
 import 'package:youtube_clone/firebase_options.dart';
 import 'package:youtube_clone/home_page.dart';
 
@@ -54,7 +55,7 @@ class MyApp extends ConsumerWidget {
               } else if (snapshot.connectionState == ConnectionState.waiting) {
                 return Loader();
               }
-              return MyChannelSettings();
+              return VideoDetailsPage();
             },
           );
         },
