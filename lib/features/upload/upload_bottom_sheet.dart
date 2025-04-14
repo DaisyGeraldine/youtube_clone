@@ -42,7 +42,7 @@ class CreateBottomSheet extends StatelessWidget {
                 child: ImageItem(
                   itemText: "Upload a Video",
                   itemClicked: () {
-                    pickVideo();
+                    pickVideo(context);
                   },
                   imageName: "upload.png",
                   haveColor: true,

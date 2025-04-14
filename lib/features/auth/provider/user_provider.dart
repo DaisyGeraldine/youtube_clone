@@ -7,3 +7,11 @@ final currentUserProvider = FutureProvider<UserModel>((ref) async {
       await ref.watch(userDataServiceProvider).fetchCurrentUserData();
   return userDataService;
 });
+
+final anyUserDataProvider = FutureProvider.family(
+  (ref, userId) async {
+    final UserModel user =
+        await ref.watch(userDataServiceProvider).fetchAnyUserData(userId);
+    return user;
+  },
+);
