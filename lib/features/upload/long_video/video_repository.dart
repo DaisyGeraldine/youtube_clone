@@ -36,6 +36,7 @@ class VideoRepository {
       likes: [],
       type: "video",
     );
+    print('uploadVideoToFirestore: ${video.toJson()}');
 
     await firestore.collection("videos").doc(videoId).set(video.toJson());
   }

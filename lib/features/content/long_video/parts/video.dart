@@ -1,67 +1,227 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:video_player/video_player.dart';
 import 'package:youtube_clone/cores/colors.dart';
+import 'package:youtube_clone/cores/screens/error_page.dart';
+import 'package:youtube_clone/cores/screens/loader.dart';
 import 'package:youtube_clone/cores/widgets/flat_button.dart';
+import 'package:youtube_clone/features/auth/provider/user_provider.dart';
+import 'package:youtube_clone/features/content/comment/comment_sheet.dart';
+import 'package:youtube_clone/features/content/long_video/parts/post.dart';
 import 'package:youtube_clone/features/content/long_video/widgets/video_externel_buttons.dart';
+import 'package:youtube_clone/features/upload/long_video/video_model.dart';
 
-class Video extends StatelessWidget {
-  const Video({Key? key}) : super(key: key);
+class Video extends ConsumerStatefulWidget {
+  final VideoModel video;
+
+  const Video({
+    Key? key,
+    required this.video,
+  }) : super(key: key);
 
   @override
+  ConsumerState<Video> createState() => _VideoState();
+}
+
+class _VideoState extends ConsumerState<Video> {
+  bool isShowIcons = false;
+  VideoPlayerController? _controller;
+  bool isPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.networkUrl(Uri.parse(
+      widget.video.videoPath,
+    ))
+      ..initialize().then((_) {
+        setState(() {});
+      });
+  }
+
+  toggleVideoPlayer() {
+    if (_controller!.value.isPlaying) {
+      _controller!.pause();
+      isPlaying = false;
+      setState(() {});
+    } else {
+      _controller!.play();
+      isPlaying = true;
+      setState(() {});
+    }
+  }
+
+  goBackward() {
+    // if (_controller!.value.position.inSeconds > 5) {
+    //   _controller!.seekTo(
+    //     Duration(seconds: _controller!.value.position.inSeconds - 5),
+    //   );
+    // } else {
+    //   _controller!.seekTo(
+    //     const Duration(seconds: 0),
+    //   );
+    // }
+    Duration position = _controller!.value.position;
+    position = position - const Duration(seconds: 1);
+    _controller!.seekTo(position);
+  }
+
+  goForward() {
+    // if (_controller!.value.position.inSeconds <
+    //     _controller!.value.duration.inSeconds - 5) {
+    //   _controller!.seekTo(
+    //     Duration(seconds: _controller!.value.position.inSeconds + 5),
+    //   );
+    // } else {
+    //   _controller!.seekTo(
+    //     _controller!.value.duration,
+    //   );
+    // }
+    Duration position = _controller!.value.position;
+    position = position + const Duration(seconds: 1);
+    _controller!.seekTo(position);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(anyUserDataProvider(widget.video.userId));
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.grey,
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(176),
-          child: GestureDetector(
-            onTap: () {},
-            child: Stack(
-              children: [
-                Positioned(
-                  left: 182,
-                  top: 87,
+          child: _controller!.value.isInitialized
+              ? FittedBox(
+                  fit: BoxFit.contain,
                   child: GestureDetector(
-                    onTap: () {},
-                    child: SizedBox(
-                      height: 50,
-                      child: Container(),
+                    onTap: isShowIcons
+                        ? () {
+                            isShowIcons = false;
+                            setState(() {});
+                          }
+                        : () {
+                            isShowIcons = true;
+                            setState(() {});
+                          },
+                    child: Stack(
+                      children: [
+                        SizedBox(
+                          width: _controller!.value.size.width,
+                          height: _controller!.value.size.height,
+                          child: VideoPlayer(
+                            _controller!,
+                          ),
+                        ),
+                        isShowIcons
+                            ? Positioned(
+                                left: 170,
+                                top: 92,
+                                child: GestureDetector(
+                                  onTap: toggleVideoPlayer,
+                                  child: SizedBox(
+                                    height: 50,
+                                    child: Image.asset(
+                                      "assets/images/play.png",
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : SizedBox(),
+                        isShowIcons
+                            ? Positioned(
+                                right: 30,
+                                top: 92,
+                                child: GestureDetector(
+                                  onTap: goBackward,
+                                  child: SizedBox(
+                                    height: 50,
+                                    child: Image.asset(
+                                      "assets/images/go_back_final.png",
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : SizedBox(),
+                        isShowIcons
+                            ? Positioned(
+                                left: 30,
+                                top: 92,
+                                child: GestureDetector(
+                                  onTap: goForward,
+                                  child: SizedBox(
+                                    height: 50,
+                                    child: Image.asset(
+                                      "assets/images/go ahead final.png",
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : SizedBox(),
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: SizedBox(
+                            height: 7.5,
+                            child: VideoProgressIndicator(
+                              _controller!,
+                              allowScrubbing: true,
+                              colors: const VideoProgressColors(
+                                playedColor: Colors.red,
+                                backgroundColor: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                )
+              : Padding(
+                  padding: EdgeInsets.only(bottom: 100),
+                  child: Loader(),
                 ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: SizedBox(
-                    height: 7.5,
-                    child: Container(),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
       body: SafeArea(
         child: ListView(
           children: [
-            Text(
-              "How to learn Flutter quickly",
-              overflow: TextOverflow.ellipsis,
-              softWrap: true,
-              style: const TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w500,
+            Padding(
+              padding: const EdgeInsets.only(left: 12, top: 4),
+              child: Text(
+                widget.video.title,
+                overflow: TextOverflow.ellipsis,
+                softWrap: true,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 7),
+              padding: const EdgeInsets.only(left: 7, top: 5),
               child: Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(left: 8, right: 8),
+                    padding: const EdgeInsets.only(left: 8, right: 4),
                     child: Text(
-                      "No view",
+                      widget.video.videoViews == 0
+                          ? "No view"
+                          : "${widget.video.videoViews} views",
+                      style: const TextStyle(
+                        fontSize: 13.4,
+                        color: Color(0xff5F5F5F),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, right: 8),
+                    child: Text(
+                      "5 minutes ago",
                       style: const TextStyle(
                         fontSize: 13.4,
                         color: Color(0xff5F5F5F),
@@ -80,8 +240,10 @@ class Video extends StatelessWidget {
               child: Row(
                 children: [
                   CircleAvatar(
-                    radius: 14,
+                    radius: 16,
                     backgroundColor: Colors.grey,
+                    backgroundImage:
+                        CachedNetworkImageProvider(user.value!.profilePicture),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(
@@ -89,12 +251,26 @@ class Video extends StatelessWidget {
                       right: 5,
                     ),
                     child: Text(
-                      "Ahmad Amini",
+                      user.value!.username,
                       style: const TextStyle(
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6, left: 6),
+                    child: Text(
+                      user.value!.subscriptions.isEmpty
+                          ? "No Subscription"
+                          : "${user.value!.subscriptions.length} Subscriptions",
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xff5F5F5F),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Spacer(),
                   SizedBox(
                     height: 35,
                     width: 100,
@@ -136,7 +312,7 @@ class Video extends StatelessWidget {
                               size: 15.5,
                             ),
                           ),
-                          const SizedBox(width: 5),
+                          const SizedBox(width: 19),
                           const Icon(
                             Icons.thumb_down,
                             size: 15.5,
@@ -166,6 +342,61 @@ class Video extends StatelessWidget {
                 ),
               ),
             ),
+            // comment Box
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 12,
+              ),
+              child: GestureDetector(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) => CommentSheet(),
+                  );
+                },
+                child: Container(
+                  height: 45,
+                  width: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection("videos")
+                    .where("videoId", isNotEqualTo: widget.video.videoId)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || snapshot.data == null) {
+                    return ErrorPage();
+                  } else if (snapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return Loader();
+                  }
+
+                  final videos = snapshot.data!.docs
+                      .map((video) => VideoModel.fromJson(video.data()))
+                      .toList();
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: videos.length,
+                    itemBuilder: (context, index) {
+                      return Post(
+                        video: videos[index],
+                      );
+                    },
+                  );
+                },
+              ),
+            )
           ],
         ),
       ),

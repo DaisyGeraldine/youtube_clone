@@ -21,13 +21,18 @@ class Post extends ConsumerWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => Video(),
+            builder: (context) => Video(
+              video: video,
+            ),
           ),
         );
       },
       child: Column(
         children: [
-          CachedNetworkImage(imageUrl: video.thumbnailPath),
+          CachedNetworkImage(imageUrl: video.thumbnailPath,
+            width: MediaQuery.sizeOf(context).width,
+            height: 300,
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

@@ -15,14 +15,10 @@ class LongVideoScreen extends StatelessWidget {
         body: StreamBuilder(
       stream: FirebaseFirestore.instance.collection("videos").snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(
-            child: ErrorPage(),
-          );
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const ErrorPage();
         } else if(snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: Loader(),
-          );
+          return const Loader();
         }
         final videoMaps = snapshot.data!.docs;
         final videos = videoMaps.map(
@@ -30,8 +26,9 @@ class LongVideoScreen extends StatelessWidget {
             return VideoModel.fromJson(video.data());
           },
         ).toList();
+        print('videos: ${videos.length}');
         return ListView.builder(
-          itemCount: 1,
+          itemCount: videos.length,
           itemBuilder: (context, index) {
             return Post(
               video: videos[index],
