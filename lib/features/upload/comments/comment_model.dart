@@ -23,4 +23,14 @@ class CommentModel {
     };
   }
 
+  factory CommentModel.fromJson(Map<String, dynamic> json) {
+    return CommentModel(
+      commentText: json["commentText"],
+      videoId: json["videoId"],
+      commentId: json["commentId"],
+      displayName: json["displayName"],
+      profielePicture: json["profielePicture"],
+    );
+  }
+
 }

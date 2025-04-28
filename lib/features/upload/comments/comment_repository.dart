@@ -16,7 +16,7 @@ class CommentRepository {
     required this.firestore,
   });
 
-  void uploadCommentFirestore({
+  Future<void> uploadCommentFirestore({
     required String commentText,
     required String videoId,
     required String displayName,

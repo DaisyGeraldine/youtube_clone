@@ -25,6 +25,18 @@ Future pickVideo(BuildContext context) async {
   }));
 }
 
+Future pickShortVideo(BuildContext context) async {
+  XFile? file = await ImagePicker().pickVideo(
+    source: ImageSource.gallery,
+    maxDuration: const Duration(seconds: 60),
+  );
+  File video = File(file!.path);
+  // ignore: use_build_context_synchronously
+  Navigator.push(context, MaterialPageRoute(builder: (context) {
+    return VideoDetailsPage(video: video);
+  }));
+}
+
 Future<File?> pickImage() async {
   XFile? file = await ImagePicker().pickImage(
     source: ImageSource.gallery,

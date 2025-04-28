@@ -94,93 +94,89 @@ class _VideoState extends ConsumerState<Video> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(176),
           child: _controller!.value.isInitialized
-              ? FittedBox(
-                  fit: BoxFit.contain,
-                  child: GestureDetector(
-                    onTap: isShowIcons
-                        ? () {
-                            isShowIcons = false;
-                            setState(() {});
-                          }
-                        : () {
-                            isShowIcons = true;
-                            setState(() {});
-                          },
-                    child: Stack(
-                      children: [
-                        SizedBox(
-                          width: _controller!.value.size.width,
-                          height: _controller!.value.size.height,
-                          child: VideoPlayer(
-                            _controller!,
-                          ),
-                        ),
-                        isShowIcons
-                            ? Positioned(
-                                left: 170,
-                                top: 92,
-                                child: GestureDetector(
-                                  onTap: toggleVideoPlayer,
-                                  child: SizedBox(
-                                    height: 50,
-                                    child: Image.asset(
-                                      "assets/images/play.png",
-                                      color: Colors.white,
-                                    ),
+              ? AspectRatio(
+                  aspectRatio: 16/9,
+                child: GestureDetector(
+                  onTap: isShowIcons
+                      ? () {
+                          isShowIcons = false;
+                          setState(() {});
+                        }
+                      : () {
+                          isShowIcons = true;
+                          setState(() {});
+                        },
+                  child: Stack(
+                    children: [
+                      SizedBox(
+                        width: _controller!.value.size.width,
+                          child: VideoPlayer(_controller!)),
+                      isShowIcons
+                          ? Positioned(
+                              left: 170,
+                              top: 92,
+                              child: GestureDetector(
+                                onTap: toggleVideoPlayer,
+                                child: SizedBox(
+                                  height: 50,
+                                  child: Image.asset(
+                                    "assets/images/play.png",
+                                    color: Colors.white,
                                   ),
                                 ),
-                              )
-                            : SizedBox(),
-                        isShowIcons
-                            ? Positioned(
-                                right: 30,
-                                top: 92,
-                                child: GestureDetector(
-                                  onTap: goBackward,
-                                  child: SizedBox(
-                                    height: 50,
-                                    child: Image.asset(
-                                      "assets/images/go_back_final.png",
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : SizedBox(),
-                        isShowIcons
-                            ? Positioned(
-                                left: 30,
-                                top: 92,
-                                child: GestureDetector(
-                                  onTap: goForward,
-                                  child: SizedBox(
-                                    height: 50,
-                                    child: Image.asset(
-                                      "assets/images/go ahead final.png",
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : SizedBox(),
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: SizedBox(
-                            height: 7.5,
-                            child: VideoProgressIndicator(
-                              _controller!,
-                              allowScrubbing: true,
-                              colors: const VideoProgressColors(
-                                playedColor: Colors.red,
-                                backgroundColor: Colors.white,
                               ),
+                            )
+                          : SizedBox(),
+                      isShowIcons
+                          ? Positioned(
+                              right: 30,
+                              top: 92,
+                              child: GestureDetector(
+                                onTap: goBackward,
+                                child: SizedBox(
+                                  height: 50,
+                                  child: Image.asset(
+                                    "assets/images/go_back_final.png",
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : SizedBox(),
+                      isShowIcons
+                          ? Positioned(
+                              left: 30,
+                              top: 92,
+                              child: GestureDetector(
+                                onTap: goForward,
+                                child: SizedBox(
+                                  height: 50,
+                                  child: Image.asset(
+                                    "assets/images/go ahead final.png",
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : SizedBox(),
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: SizedBox(
+                          height: 7.5,
+                          child: VideoProgressIndicator(
+                            _controller!,
+                            allowScrubbing: true,
+                            colors: const VideoProgressColors(
+                              playedColor: Colors.red,
+                              backgroundColor: Colors.white,
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                )
+                ),
+              )
               : Padding(
                   padding: EdgeInsets.only(bottom: 100),
                   child: Loader(),
@@ -352,7 +348,9 @@ class _VideoState extends ConsumerState<Video> {
                 onTap: () {
                   showModalBottomSheet(
                     context: context,
-                    builder: (context) => CommentSheet(),
+                    builder: (context) => CommentSheet(
+                      video: widget.video,
+                    ),
                   );
                 },
                 child: Container(
@@ -367,36 +365,34 @@ class _VideoState extends ConsumerState<Video> {
                 ),
               ),
             ),
-            Expanded(
-              child: StreamBuilder(
-                stream: FirebaseFirestore.instance
-                    .collection("videos")
-                    .where("videoId", isNotEqualTo: widget.video.videoId)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData || snapshot.data == null) {
-                    return ErrorPage();
-                  } else if (snapshot.connectionState ==
-                      ConnectionState.waiting) {
-                    return Loader();
-                  }
+            StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection("videos")
+                  .where("videoId", isNotEqualTo: widget.video.videoId)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || snapshot.data == null) {
+                  return ErrorPage();
+                } else if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return Loader();
+                }
 
-                  final videos = snapshot.data!.docs
-                      .map((video) => VideoModel.fromJson(video.data()))
-                      .toList();
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: videos.length,
-                    itemBuilder: (context, index) {
-                      return Post(
-                        video: videos[index],
-                      );
-                    },
-                  );
-                },
-              ),
-            )
+                final videos = snapshot.data!.docs
+                    .map((video) => VideoModel.fromJson(video.data()))
+                    .toList();
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: videos.length,
+                  itemBuilder: (context, index) {
+                    return Post(
+                      video: videos[index],
+                    );
+                  },
+                );
+              },
+            ),
           ],
         ),
       ),
